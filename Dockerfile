@@ -1,5 +1,5 @@
-FROM ubuntu:22.04
-RUN apt-get update && apt-get install -y nano 
-RUN apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
+FROM python:3.12-slim
+RUN pip3 install flask
 COPY config/ /site_config/
-CMD [ "python3", "main.py" ]
+EXPOSE 5000
+CMD ["python3", "/site_config/app.py"]
