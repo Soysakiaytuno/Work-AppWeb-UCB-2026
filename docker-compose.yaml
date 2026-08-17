@@ -1,8 +1,0 @@
-services:
-  portafolio:
-    build: .
-    image: imagen-prueba
-    volumes: 
-      - /config:volumen-web:/config/
-    ports: 
-      - "5000.5000"
