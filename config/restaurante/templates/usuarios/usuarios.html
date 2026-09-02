@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+{% block titulo%} Usuarios {% endblock %}
+{% block contenido %} 
+    <div>
+        {% if listaUsuarios not none %}
+            {% for user in listaUsuarios %}
+                <p>
+                    id: {{user.id}}
+                    Nombre: {{user.nombre}}
+                    Email: {{user.email}}
+                    Telefono: {{user.telefono}}
+                </p>
+            {% endfor %}
+        {% endif %}       
+    </div>
+{% endblock %}
