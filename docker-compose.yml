@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: restaurante_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: 123qwe
+      POSTGRES_DB: restaurant_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./posgresData/db.ddl:/docker-entrypoint-initdb.d/01-db.sql:ro
+      - ./posgresData/datos-prueba.sql:/docker-entrypoint-initdb.d/02-datos-prueba.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d restaurant_database"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurante_web
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://app:123qwe@db:5432/restaurant_database
+      FLASK_DEBUG: "1"
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: python3 main.py
+
+volumes:
+  postgres_data:
+    driver: local

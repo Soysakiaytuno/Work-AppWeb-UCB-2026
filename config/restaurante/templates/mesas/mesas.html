@@ -1,0 +1,19 @@
+{% extends 'index.html' %}
+{% block titulo %}Mesas{% endblock %}
+{% block contenido %}
+    <h2>Lista de Mesas</h2>
+    <div>
+        {% if listaMesas %}
+            {% for mesa in listaMesas %}
+                <p>
+                    <strong>ID:</strong> {{ mesa.id }} | 
+                    <strong>Mesa Nº:</strong> {{ mesa.numero }} | 
+                    <strong>Capacidad:</strong> {{ mesa.capacidad }} personas
+                </p>
+            {% endfor %}
+        {% else %}
+            <p>No se encontraron mesas registradas.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+

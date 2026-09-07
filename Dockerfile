@@ -1,5 +1,17 @@
 FROM python:3.12-slim
-RUN pip3 install flask
-COPY config/ /site_config/
+
+WORKDIR /app
+
+# Instalar dependencias de Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código del proyecto
+COPY . .
+
+# Directorio de trabajo en el módulo activo de restaurante
+WORKDIR /app/config/restaurante
+
 EXPOSE 5000
-CMD ["python3", "/site_config/app.py"]
+
+CMD ["python3", "main.py"]

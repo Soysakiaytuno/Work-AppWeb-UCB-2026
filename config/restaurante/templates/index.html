@@ -1,27 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block titulo %} {% endblock %}</title>
+    <title>{% block titulo %}Restaurante{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
     <header class="mi-header">
-    <h1>PORTAFOLIO MIJAEL ANDER CALLEJAS AGUIRRE</h1>
+        <h1>RESTAURANTE</h1>
         <nav>
             <ul>
-                <li><a href="usuarios">Inicio</a></li>
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/usuarios">Usuarios</a></li>
+                <li><a href="/mesas">Mesas</a></li>
+                <li><a href="/productos">Productos</a></li>
+                <li><a href="/recibos">Recibos</a></li>
             </ul>
         </nav>
     </header>
+    <hr>
     <main>
-
+        {% block contenido %}{% endblock %}
     </main>
     <footer class="mi-footer">
-    <div class="footer-inferior">
-        ISW-233 - Web
-    </div>
+        <p>ISW-233 - Web</p>
     </footer>
 </body>
 </html>

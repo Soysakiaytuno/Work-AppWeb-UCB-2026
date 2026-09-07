@@ -1,16 +1,19 @@
 {% extends 'index.html' %}
-{% block titulo%} Usuarios {% endblock %}
-{% block contenido %} 
+{% block titulo %}Usuarios{% endblock %}
+{% block contenido %}
+    <h2>Lista de Usuarios</h2>
     <div>
-        {% if listaUsuarios not none %}
+        {% if listaUsuarios %}
             {% for user in listaUsuarios %}
                 <p>
-                    id: {{user.id}}
-                    Nombre: {{user.nombre}}
-                    Email: {{user.email}}
-                    Telefono: {{user.telefono}}
+                    <strong>ID:</strong> {{ user.id }} | 
+                    <strong>Nombre:</strong> {{ user.nombre }} | 
+                    <strong>Email:</strong> {{ user.email }} | 
+                    <strong>Teléfono:</strong> {{ user.telefono }}
                 </p>
             {% endfor %}
-        {% endif %}       
+        {% else %}
+            <p>No se encontraron usuarios registrados.</p>
+        {% endif %}
     </div>
 {% endblock %}
