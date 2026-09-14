@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Restaurante - Django{% endblock %}</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <style>
+        .badge-django {
+            display: inline-block;
+            background: #092e20;
+            color: #44b78b;
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+            border: 1px solid #44b78b;
+        }
+    </style>
+</head>
+<body>
+    <header class="mi-header">
+        <h1>RESTAURANTE <span class="badge-django">Django (Puerto 8000)</span></h1>
+        <nav>
+            <ul>
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/usuarios">Usuarios</a></li>
+                <li><a href="/mesas">Mesas</a></li>
+                <li><a href="/productos">Productos</a></li>
+                <li><a href="/recibos">Recibos</a></li>
+            </ul>
+        </nav>
+    </header>
+    <hr>
+    <main>
+        {% block contenido %}{% endblock %}
+    </main>
+    <footer class="mi-footer">
+        <p>ISW-233 - Web (Versión Django)</p>
+    </footer>
+</body>
+</html>

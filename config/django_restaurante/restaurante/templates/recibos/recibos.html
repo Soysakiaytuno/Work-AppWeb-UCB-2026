@@ -1,0 +1,20 @@
+{% extends 'index.html' %}
+{% block titulo %}Recibos - Django{% endblock %}
+{% block contenido %}
+    <h2>Lista de Recibos (Django ORM - Recientes)</h2>
+    <div>
+        {% if listaRecibos %}
+            {% for r in listaRecibos %}
+                <p>
+                    <strong>ID:</strong> {{ r.id }} | 
+                    <strong>Fecha:</strong> {{ r.creation_date }} | 
+                    <strong>Tipo:</strong> {{ r.tipo_pedido }} | 
+                    <strong>Método:</strong> {{ r.metodo_pago }} | 
+                    <strong>Total:</strong> ${{ r.total }}
+                </p>
+            {% endfor %}
+        {% else %}
+            <p>No se encontraron recibos registrados.</p>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -20,12 +20,13 @@ services:
       retries: 10
       start_period: 5s
 
-  web:
+  web_flask:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: restaurante_web
+    container_name: restaurante_flask
     restart: unless-stopped
+    working_dir: /app/config/restaurante
     environment:
       DATABASE_URL: postgresql://app:123qwe@db:5432/restaurant_database
       FLASK_DEBUG: "1"
@@ -38,6 +39,29 @@ services:
       db:
         condition: service_healthy
     command: python3 main.py
+
+  web_django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurante_django
+    restart: unless-stopped
+    working_dir: /app/config/django_restaurante
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: 123qwe
+      POSTGRES_DB: restaurant_database
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: python manage.py runserver 0.0.0.0:8000
 
 volumes:
   postgres_data:
