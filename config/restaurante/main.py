@@ -26,6 +26,10 @@ class Usuario(db.Model):
     nombre = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     telefono = db.Column(db.String(20))
+    def __init__(self, nombre, email, telefono):
+        self.nombre = nombre
+        self.email = email
+        self.telefono = telefono
 
     def __repr__(self):
         return f'<Usuario id={self.id} nombre={self.nombre}>'
@@ -121,6 +125,38 @@ def vista_usuarios():
     """GET / o /usuarios  →  vista HTML de usuarios."""
     usuarios = Usuario.query.order_by(Usuario.nombre).all()
     return render_template('usuarios/usuarios.html', listaUsuarios=usuarios)
+
+@app.route('/usuario', methods=['GET', 'POST', 'PATCH', 'DELETE'])
+def vista_usuario():
+    """GET / o /usuario  →  vista HTML de un usuario."""
+    if request.method == 'GET':
+        try:
+            id_buscado = request.args.get('usuario_id')
+            if id_buscado:
+                usuario = Usuario.query.get(id_buscado)
+            else:
+                usuario = None
+        except:
+            abort(404)
+    elif request.method == 'POST':
+        try:
+            usuario = Usuario(nombre=request.form.get('usuario_nombre_add'), email=request.form.get('usuario_email_add'), telefono=request.form.get('usuario_telefono_add'))
+            db.session.add(usuario)
+            db.session.commit()
+            return render_template('usuarios/usuario.html', user=usuario)
+        except:
+            abort(404)
+    elif request.method == 'PATCH':
+        try:
+            pass
+        except:
+            abort(404)
+    elif request.method == 'DELETE':
+        try:
+            pass
+        except:
+            abort(404)
+    return render_template('usuarios/usuario.html', user=usuario)
 
 
 @app.route('/mesas', methods=['GET'])
