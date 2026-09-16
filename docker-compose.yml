@@ -53,6 +53,8 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: 123qwe
       POSTGRES_DB: restaurant_database
+      DJANGO_SUPERUSER_USERNAME: admin
+      DJANGO_SUPERUSER_PASSWORD: admin123
       PYTHONUNBUFFERED: "1"
     ports:
       - "8000:8000"
@@ -61,7 +63,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py migrate --noinput && python manage.py initadmin && python manage.py runserver 0.0.0.0:8000"
 
 volumes:
   postgres_data:
