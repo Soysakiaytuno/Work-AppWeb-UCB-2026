@@ -5,6 +5,7 @@ from flask import Flask, jsonify, abort, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Uuid
 from sqlalchemy.dialects.postgresql import UUID
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
@@ -139,23 +140,30 @@ def vista_usuario():
         except:
             abort(404)
     elif request.method == 'POST':
-        try:
-            usuario = Usuario(nombre=request.form.get('usuario_nombre_add'), email=request.form.get('usuario_email_add'), telefono=request.form.get('usuario_telefono_add'))
-            db.session.add(usuario)
-            db.session.commit()
-            return render_template('usuarios/usuario.html', user=usuario)
-        except:
-            abort(404)
-    elif request.method == 'PATCH':
-        try:
-            pass
-        except:
-            abort(404)
-    elif request.method == 'DELETE':
-        try:
-            pass
-        except:
-            abort(404)
+        if request.form.get('methodvalue') == 'PATCH':
+            try:
+                usuario = Usuario.query.get(request.form.get('usuario_id'))
+                usuario.nombre = request.form.get('usuario_nombre')
+                usuario.email = request.form.get('usuario_email')
+                usuario.telefono = request.form.get('usuario_telefono')
+                db.session.commit()
+            except:
+                abort(404)
+        elif request.form.get('methodvalue') == 'DELETE':
+            try:
+                usuario = Usuario.query.get(request.form.get('usuario_id'))
+                db.session.delete(usuario)
+                db.session.commit()
+                usuario = None
+            except:
+                abort(404)
+        else:
+            try:
+                usuario = Usuario(nombre=request.form.get('usuario_nombre_add'), email=request.form.get('usuario_email_add'), telefono=request.form.get('usuario_telefono_add'))
+                db.session.add(usuario)
+                db.session.commit()
+            except:
+                abort(404)
     return render_template('usuarios/usuario.html', user=usuario)
 
 
