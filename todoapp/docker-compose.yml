@@ -9,8 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
-
+      # - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-todo} -d ${POSTGRES_DB:-todoapp}" ]
       interval: 5s
@@ -26,6 +25,7 @@ services:
     ports:
       - "${WEB_PORT:-5001}:5000"
     environment:
+      # Nota que aquí el host es 'db' (el nombre del servicio arriba)
       - DATABASE_URL=postgresql://${POSTGRES_USER:-todo}:${POSTGRES_PASSWORD:-todo}@db:5432/${POSTGRES_DB:-todoapp}
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
@@ -37,7 +37,7 @@ services:
       - .:/app
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy # ¡Espera a que Postgres pase el healthcheck antes de arrancar web!
 
 volumes:
   postgres_data:

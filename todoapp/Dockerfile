@@ -12,6 +12,6 @@ COPY . .
 RUN cp -r /app/app/static /opt/static-dist
 RUN chmod +x entrypoint.sh
 EXPOSE 5000
-#ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
 #CMD ["python", "wsgi.py"]
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "wsgi:app"]
