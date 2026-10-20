@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Mis Pedidos{% endblock %}
+
+{% block contenido %}
+<div class="pedidos-container">
+    <h2>Historial de Mis Pedidos</h2>
+
+    {% if pedidos %}
+        <div class="pedidos-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nº Pedido</th>
+                        <th>Restaurante</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pedidos %}
+                        <tr>
+                            <td><strong>#{{ p.id }}</strong></td>
+                            <td>{{ p.restaurante.nombre }}</td>
+                            <td>{{ p.fecha.strftime('%d/%m/%Y %H:%M') if p.fecha else '-' }}</td>
+                            <td>
+                                <span class="badge badge-{{ p.estado }}">
+                                    {{ p.estado|replace('_', ' ')|capitalize }}
+                                </span>
+                            </td>
+                            <td><strong>${{ p.total }}</strong></td>
+                            <td>
+                                <a href="{{ url_for('views.ver_pedido', pedido_id=p.id) }}" class="btn btn-sm btn-outline">
+                                    Ver Detalle
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Aún no has realizado ningún pedido.</p>
+            <a href="{{ url_for('views.pagina_inicio') }}" class="btn btn-primary">Ir a la Carta</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

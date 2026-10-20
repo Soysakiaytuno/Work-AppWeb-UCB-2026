@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-todo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-todo}
+      POSTGRES_DB: ${POSTGRES_DB:-todoapp}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-todo} -d ${POSTGRES_DB:-todoapp}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todo-app_web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-5001}:5000"
+    environment:
+      # Nota que aquí el host es 'db' (el nombre del servicio arriba)
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-todo}:${POSTGRES_PASSWORD:-todo}@db:5432/${POSTGRES_DB:-todoapp}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-todo}
+      - POSTGRES_DB=${POSTGRES_DB:-todoapp}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-change-me}
+      - FLASK_DEBUG=1
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy # ¡Espera a que Postgres pase el healthcheck antes de arrancar web!
+
+volumes:
+  postgres_data:

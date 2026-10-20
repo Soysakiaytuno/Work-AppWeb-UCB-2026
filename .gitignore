@@ -1,0 +1,40 @@
+# Secretos y variables de entorno (CRÍTICO: Nunca comitear a Git, resta 6 pts en la rúbrica)
+.env
+.env.*
+!.env.example
+
+# Bytecode de Python y caché
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Entornos virtuales
+.venv/
+venv/
+ENV/
+env/
+
+# Datos y volúmenes de base de datos
+postgres_data/
+*.sqlite3
+*.db
+
+# Estáticos compilados por collectstatic
+staticfiles/
+*.log
+
+# Caché de pruebas
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Documentación y guías internas (solo se sube README.md al repositorio)
+*.md
+!README.md

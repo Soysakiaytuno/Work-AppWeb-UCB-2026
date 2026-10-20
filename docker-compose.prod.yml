@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: restaurante_db_prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+    # SIN "ports:": La base de datos es 100% invisible desde fuera de Docker
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  web_flask:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurante_flask_prod
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      BEHIND_PROXY: "1"
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN:-}
+      API_AUDIENCE: ${API_AUDIENCE:-}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-3}
+    # SIN "ports:": Nadie puede saltarse a NGINX para hablar directo con Python
+    volumes:
+      - static_files:/app/config/restaurante/app/static
+    networks:
+      - backend
+      - frontend
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: restaurante_nginx_prod
+    restart: always
+    depends_on:
+      - web_flask
+    ports:
+      - "${HTTP_PORT:-8080}:80"  # EL ÚNICO PUERTO PÚBLICO EXPUESTO
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_files:/app/config/restaurante/app/static:ro
+    networks:
+      - frontend
+
+volumes:
+  postgres_data_prod:
+  static_files:
+
+networks:
+  frontend:
+  backend:
+    internal: true  # Red blindada: sin salida ni acceso a internet para la BD

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card form-card">
+    <h2>New Todo</h2>
+    <form method="post" action="{{ url_for('todos.create') }}">
+        <div class="form-group">
+            <input type="text" name="title" placeholder="What needs to be done?" required autofocus>
+        </div>
+        <div class="form-group">
+            <textarea name="description" placeholder="Optional description..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Todo</button>
+    </form>
+</section>
+
+<section class="card list-card">
+    <h2>Your Todos</h2>
+    {% if todos %}
+    <ul class="todo-list">
+        {% for todo in todos %}
+        <li class="todo-item {% if todo.completed %}completed{% endif %}">
+            <div class="todo-main">
+                <form method="post" action="{{ url_for('todos.toggle', todo_id=todo.id) }}" class="toggle-form">
+                    <input type="checkbox" onchange="this.form.submit()" {% if todo.completed %}checked{% endif %}>
+                </form>
+                <div class="todo-details">
+                    <h3>{{ todo.title }}</h3>
+                    {% if todo.description %}
+                    <p>{{ todo.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="todo-actions">
+                <a href="{{ url_for('todos.edit', todo_id=todo.id) }}" class="btn btn-small">Edit</a>
+                <form method="post" action="{{ url_for('todos.delete', todo_id=todo.id) }}">
+                    <button type="submit" class="btn btn-small btn-danger"
+                        onclick="return confirm('Are you sure?')">Delete</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty-state">No todos yet. Create one above!</p>
+    {% endif %}
+</section>
+{% endblock %}

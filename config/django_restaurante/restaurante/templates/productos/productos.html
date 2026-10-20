@@ -1,0 +1,19 @@
+{% extends 'index.html' %}
+{% block titulo %}Productos - Django{% endblock %}
+{% block contenido %}
+    <h2>Lista de Productos (Django ORM)</h2>
+    <div>
+        {% if listaProductos %}
+            {% for prod in listaProductos %}
+                <p>
+                    <strong>Nombre:</strong> {{ prod.nombre }} | 
+                    <strong>Precio:</strong> ${{ prod.precio }} | 
+                    <strong>Descripción:</strong> {{ prod.descripcion|default:"Sin descripción" }} | 
+                    <strong>Ingredientes:</strong> {{ prod.ingredientes|default:"No especificado" }}
+                </p>
+            {% endfor %}
+        {% else %}
+            <p>No se encontraron productos registrados.</p>
+        {% endif %}
+    </div>
+{% endblock %}

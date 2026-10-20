@@ -1,0 +1,17 @@
+{% extends 'index.html' %}
+{% block titulo %}Mesas - Django{% endblock %}
+{% block contenido %}
+    <h2>Lista de Mesas (Django ORM)</h2>
+    <div>
+        {% if listaMesas %}
+            {% for mesa in listaMesas %}
+                <p>
+                    <strong>Mesa Nº:</strong> {{ mesa.numero }} | 
+                    <strong>Capacidad:</strong> {{ mesa.capacidad }} personas
+                </p>
+            {% endfor %}
+        {% else %}
+            <p>No se encontraron mesas registradas.</p>
+        {% endif %}
+    </div>
+{% endblock %}

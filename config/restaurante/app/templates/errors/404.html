@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block titulo %}No Encontrado (404){% endblock %}
+
+{% block contenido %}
+<div class="error-container">
+    <div class="card error-card">
+        <div class="error-icon">🔍</div>
+        <h2>404 · Recurso no encontrado</h2>
+        <p class="error-message">El recurso que buscas no existe o no tienes permiso para acceder a él.</p>
+        <div class="error-actions">
+            <a href="{{ url_for('views.pagina_inicio') }}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
