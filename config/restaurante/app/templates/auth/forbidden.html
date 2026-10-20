@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Acceso Denegado (403){% endblock %}
+
+{% block contenido %}
+<div class="error-container">
+    <div class="card error-card">
+        <div class="error-icon">🚫</div>
+        <h2>Acceso Denegado ({{ code or 403 }})</h2>
+        <p class="error-message">{{ message or 'No tienes los permisos necesarios para realizar esta acción.' }}</p>
+        <p class="error-code">Código de error: <code>{{ error_code or 'forbidden' }}</code></p>
+        <div class="error-actions">
+            <a href="{{ url_for('views.pagina_inicio') }}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,25 +1,55 @@
 services:
+  # ============================================================================
+  # 1. BASE DE DATOS (R4.2: PostgreSQL 16, volumen con nombre, sin ports, con healthcheck)
+  # ============================================================================
   db:
     image: postgres:16-alpine
     container_name: restaurante_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: 123qwe
-      POSTGRES_DB: restaurant_database
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123qwe}
+      POSTGRES_DB: ${POSTGRES_DB:-restaurant_database}
+    # R4.2: SIN ports hacia el exterior. Solo accesible en la red interna de Docker.
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./posgresData/db.ddl:/docker-entrypoint-initdb.d/01-db.sql:ro
-      - ./posgresData/datos-prueba.sql:/docker-entrypoint-initdb.d/02-datos-prueba.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d restaurant_database"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-restaurant_database}" ]
       interval: 3s
       timeout: 5s
       retries: 10
       start_period: 5s
 
+  # ============================================================================
+  # 2. SERVICIO DE MIGRACIÓN ÚNICA (R4.3 y R5.5)
+  #    Ejecuta migraciones de Django (dueño del esquema), initadmin y collectstatic, y termina.
+  # ============================================================================
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurante_migrate
+    working_dir: /app/config/django_restaurante
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123qwe}
+      POSTGRES_DB: ${POSTGRES_DB:-restaurant_database}
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin123}
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - .:/app
+      - django_static:/app/config/django_restaurante/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "python manage.py migrate --noinput && python manage.py initadmin && python manage.py collectstatic --noinput"
+
+  # ============================================================================
+  # 3. APLICACIÓN WEB PRINCIPAL (FLASK CON GUNICORN) (R4.4)
+  # ============================================================================
   web_flask:
     build:
       context: .
@@ -28,18 +58,31 @@ services:
     restart: unless-stopped
     working_dir: /app/config/restaurante
     environment:
-      DATABASE_URL: postgresql://app:123qwe@db:5432/restaurant_database
-      FLASK_DEBUG: "1"
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://app:123qwe@db:5432/restaurant_database}
+      FLASK_APP: wsgi.py
+      FLASK_DEBUG: ${FLASK_DEBUG:-0}
       PYTHONUNBUFFERED: "1"
-    ports:
-      - "5000:5000"
+      BEHIND_PROXY: ${BEHIND_PROXY:-1}
+      SECRET_KEY: ${SECRET_KEY:-clave-secreta-desarrollo-restaurante-2026}
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN:-}
+      API_AUDIENCE: ${API_AUDIENCE:-}
+      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID:-}
+      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET:-}
+      ALGORITHMS: ${ALGORITHMS:-RS256}
+    # R4.5: SIN ports directos. Solo Nginx se comunica con Flask por red interna.
     volumes:
       - .:/app
     depends_on:
       db:
         condition: service_healthy
-    command: python3 main.py
+      # R4.3: Solo arranca cuando migrate terminó exitosamente
+      migrate:
+        condition: service_completed_successfully
+    command: gunicorn --config gunicorn.conf.py wsgi:app
 
+  # ============================================================================
+  # 4. BACKOFFICE (DJANGO ADMIN CON GUNICORN) (R4.4)
+  # ============================================================================
   web_django:
     build:
       context: .
@@ -50,21 +93,66 @@ services:
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: 123qwe
-      POSTGRES_DB: restaurant_database
-      DJANGO_SUPERUSER_USERNAME: admin
-      DJANGO_SUPERUSER_PASSWORD: admin123
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123qwe}
+      POSTGRES_DB: ${POSTGRES_DB:-restaurant_database}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-admin.localhost,localhost,127.0.0.1,web_django}
       PYTHONUNBUFFERED: "1"
-    ports:
-      - "8000:8000"
+    # R4.5: SIN ports directos. Solo Nginx se comunica con Django.
     volumes:
       - .:/app
+      - django_static:/app/config/django_restaurante/staticfiles
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "python manage.py migrate --noinput && python manage.py initadmin && python manage.py runserver 0.0.0.0:8000"
+      # R4.3: Solo arranca cuando migrate terminó exitosamente
+      migrate:
+        condition: service_completed_successfully
+    command: gunicorn --bind 0.0.0.0:8000 --workers 2 django_restaurante.wsgi:application
 
+  # ============================================================================
+  # 5. SERVIDOR WEB Y REVERSE PROXY (NGINX) (R4.5 y R5)
+  # ============================================================================
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: restaurante_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"   # Único punto de entrada HTTP público
+      - "443:443" # Punto de entrada HTTPS para producción
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - django_static:/var/www/django_static:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+      - .:/app:ro
+    depends_on:
+      - web_flask
+      - web_django
+
+  # ============================================================================
+  # 6. RENOVACIÓN AUTOMÁTICA DE CERTIFICADOS SSL (R5.2)
+  #    Ejecuta renovación continua cada 12 horas mediante cron en contenedor
+  # ============================================================================
+  certbot:
+    image: certbot/certbot:latest
+    container_name: restaurante_certbot
+    restart: unless-stopped
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;'"
+
+# ==============================================================================
+# VOLÚMENES CON NOMBRE (R4.2, R5.2 y R5.5)
+# ==============================================================================
 volumes:
   postgres_data:
+    driver: local
+  django_static:
+    driver: local
+  certbot_conf:
+    driver: local
+  certbot_www:
     driver: local

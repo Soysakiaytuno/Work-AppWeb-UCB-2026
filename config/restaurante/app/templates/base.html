@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}La Carta{% endblock %} | ISW-233</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="app-header">
+        <div class="nav-container">
+            <a href="{{ url_for('views.pagina_inicio') }}" class="brand-logo">
+                🍽️ <span>La Carta</span>
+            </a>
+            <nav class="nav-links">
+                <a href="{{ url_for('views.pagina_inicio') }}">Restaurantes</a>
+
+                {% if user and user.has_permission('read:mis-pedidos') %}
+                    <a href="{{ url_for('views.mis_pedidos') }}">Mis Pedidos</a>
+                {% endif %}
+
+                {% if user and user.has_permission('read:pedidos') %}
+                    <a href="{{ url_for('views.vista_cocina') }}" class="nav-badge-link">
+                        Cocina
+                    </a>
+                {% endif %}
+            </nav>
+
+            <div class="user-auth-section">
+                {% if user %}
+                    <span class="user-greeting">
+                        Hola, <strong>{{ user.name }}</strong>
+                    </span>
+                    <a href="{{ url_for('auth.logout') }}" class="btn-logout">Cerrar sesión</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn-login">Iniciar sesión</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <main class="main-content">
+        {% block contenido %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+        <p>ISW-233 · Aplicaciones Web I · UCB Santa Cruz</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Pedido #{{ pedido.id }}{% endblock %}
+
+{% block contenido %}
+<div class="pedido-detail-container">
+    <div class="breadcrumb">
+        <a href="{{ url_for('views.mis_pedidos') }}">← Volver a Mis Pedidos</a>
+    </div>
+
+    <div class="card pedido-summary-card">
+        <div class="card-header flex-between">
+            <div>
+                <h2>Pedido #{{ pedido.id }}</h2>
+                <p class="subtitle">{{ pedido.restaurante.nombre }} · {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha else '' }}</p>
+            </div>
+            <div>
+                <span class="badge badge-lg badge-{{ pedido.estado }}">
+                    {{ pedido.estado|replace('_', ' ')|upper }}
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <h3>Ítems del Pedido (Precios Congelados)</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Plato</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in pedido.items %}
+                        <tr>
+                            <td>{{ item.plato.nombre }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>${{ item.precio_unitario }}</td>
+                            <td>${{ "%.2f"|format(item.precio_unitario * item.cantidad) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="3" class="text-right">Total Calculado en Servidor:</th>
+                        <th><span class="total-highlight">${{ pedido.total }}</span></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="card-footer flex-between">
+            <a href="{{ url_for('views.mis_pedidos') }}" class="btn btn-outline">Volver</a>
+
+            {% if pedido.estado == 'pendiente' %}
+                <form action="{{ url_for('views.cancelar_pedido', pedido_id=pedido.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de cancelar este pedido?');">
+                    <button type="submit" class="btn btn-danger">
+                        ❌ Cancelar Pedido
+                    </button>
+                </form>
+            {% elif pedido.estado == 'cancelado' %}
+                <span class="text-muted">Este pedido fue cancelado.</span>
+            {% else %}
+                <span class="text-muted">El pedido ya se encuentra en proceso o finalizado (no cancelable).</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

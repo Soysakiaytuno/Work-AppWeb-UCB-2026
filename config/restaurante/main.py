@@ -6,6 +6,9 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Uuid
 from sqlalchemy.dialects.postgresql import UUID
 from flask_migrate import Migrate
+from flask import Flask, redirect, url_for
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
@@ -17,7 +20,49 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
+# Configuración del JWT
+app.config['JWT_SECRET_KEY'] = os.environ.get(
+    'JWT_SECRET_KEY',
+    'restaurante-super-secreto-cambiar-en-produccion-32bytes-minimo!'
+)
+app.config['JWT_EXPIRES_MINUTES'] = int(os.environ.get('JWT_EXPIRES_MINUTES', '60'))
+app.config['JWT_ISSUER'] = os.environ.get('JWT_ISSUER', 'restaurante-app')
+
 # --- Modelos SQLAlchemy ---
+
+class UsuarioAuth(db.Model):
+    __tablename__ = 'usuario'
+    __table_args__ = {'schema': 'auth'}
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password_hash = db.Column('password', db.String(255), nullable=False)
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password_hash = generate_password_hash(password)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    @staticmethod
+    def verify_password(password_hash, password):
+        return check_password_hash(password_hash, password)
+    
+    def __repr__(self):
+        return f'<UsuarioAuth username={self.username}>'
+
+    def format(self):
+        return {
+            'id': str(self.id) if self.id else None,
+            'username': self.username,
+            'password_hash': self.password_hash
+        }
+
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
 
 class Usuario(db.Model):
     __tablename__ = 'usuario'
@@ -117,10 +162,49 @@ class Recibo(db.Model):
             'creation_date': str(self.creation_date) if self.creation_date else None
         }
 
+def verificar_login(f):
+    @wraps(f)
+    def wraper(*args, **kwargs):
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            
+            usuario = UsuarioAuth.query.filter_by(username=username, password=password).first()
+            
+            if not usuario:
+                return render_template('login/login.html', error="Usuario o contraseña incorrectos")
+            
+            return f(usuario=usuario, *args, **kwargs)
+        
+        return f(usuario=None, *args, **kwargs)
+        
+    return wraper
+
+@app.errorhandler(AuthError)
+def handle_auth_error(err: AuthError):
+    return jsonify({
+        "success": False,
+        "error": err.status_code,
+        "code": err.error["code"],
+        "message": err.error["description"]
+    }), err.status_code
 
 # --- Rutas de Vistas HTML (Layers) ---
 
 @app.route('/', methods=['GET'])
+def pagina_inicio():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+@verificar_login
+def vista_login(usuario=None):
+    
+    if usuario:
+        return redirect(url_for('pagina_inicio'))
+    
+    return render_template('login/login.html')
+
+
 @app.route('/usuarios', methods=['GET'])
 def vista_usuarios():
     """GET / o /usuarios  →  vista HTML de usuarios."""

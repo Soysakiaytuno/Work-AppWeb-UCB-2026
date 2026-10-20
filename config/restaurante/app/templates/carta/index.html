@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Restaurantes{% endblock %}
+
+{% block contenido %}
+<div class="carta-container">
+    <div class="header-section">
+        <h2>Restaurantes Disponibles</h2>
+        <p>Explora la carta de los mejores restaurantes y realiza tu pedido en línea.</p>
+    </div>
+
+    {% if restaurantes %}
+        <div class="restaurantes-grid">
+            {% for r in restaurantes %}
+                <div class="card restaurante-card">
+                    <div class="card-header">
+                        <h3>{{ r.nombre }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="direccion">📍 {{ r.direccion }}</p>
+                        {% if r.telefono %}
+                            <p class="telefono">📞 {{ r.telefono }}</p>
+                        {% endif %}
+                        <div class="platos-preview">
+                            <span class="platos-count">{{ r.platos|selectattr('disponible')|list|length }} platos disponibles</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('views.detalle_restaurante', restaurante_id=r.id) }}" class="btn btn-primary">
+                            Ver Carta y Pedir
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No hay restaurantes registrados en este momento.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

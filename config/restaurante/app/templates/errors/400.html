@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Solicitud Inválida (400){% endblock %}
+
+{% block contenido %}
+<div class="error-container">
+    <div class="card error-card">
+        <div class="error-icon">⚠️</div>
+        <h2>400 · Solicitud Inválida</h2>
+        <p class="error-message">Los datos enviados no son válidos o violan las reglas del sistema.</p>
+        <div class="error-actions">
+            <a href="{{ url_for('views.pagina_inicio') }}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

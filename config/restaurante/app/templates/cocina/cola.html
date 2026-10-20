@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Cola de Cocina{% endblock %}
+
+{% block contenido %}
+<div class="cocina-container">
+    <div class="header-section flex-between">
+        <div>
+            <h2>👨‍🍳 Cola de Cocina</h2>
+            <p>Monitoreo y avance de pedidos activos en tiempo real.</p>
+        </div>
+        <div>
+            <button onclick="window.location.reload();" class="btn btn-outline">🔄 Recargar Cola</button>
+        </div>
+    </div>
+
+    {% if pedidos %}
+        <div class="pedidos-cards-grid">
+            {% for p in pedidos %}
+                <div class="card pedido-cocina-card estado-border-{{ p.estado }}">
+                    <div class="card-header flex-between">
+                        <div>
+                            <h3>Pedido #{{ p.id }}</h3>
+                            <span class="restaurant-name">{{ p.restaurante.nombre }}</span>
+                        </div>
+                        <span class="badge badge-{{ p.estado }}">
+                            {{ p.estado|replace('_', ' ')|upper }}
+                        </span>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="time-elapsed">🕒 Hora: {{ p.fecha.strftime('%H:%M:%S') if p.fecha else '' }}</p>
+                        <ul class="cocina-items-list">
+                            {% for item in p.items %}
+                                <li>
+                                    <span class="item-qty">{{ item.cantidad }}x</span>
+                                    <span class="item-name">{{ item.plato.nombre }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="card-footer">
+                        {% if user and user.has_permission('update:pedidos') %}
+                            <form action="{{ url_for('views.avanzar_pedido_cocina', pedido_id=p.id) }}" method="POST">
+                                {% if p.estado == 'pendiente' %}
+                                    <button type="submit" class="btn btn-warning btn-block">
+                                        ▶️ Comenzar Preparación
+                                    </button>
+                                {% elif p.estado == 'en_preparacion' %}
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        ✅ Marcar como Listo
+                                    </button>
+                                {% elif p.estado == 'listo' %}
+                                    <button type="submit" class="btn btn-success btn-block">
+                                        📦 Marcar como Entregado
+                                    </button>
+                                {% endif %}
+                            </form>
+                        {% else %}
+                            <span class="text-muted text-sm">Sin permiso para avanzar estado</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>🎉 ¡No hay pedidos pendientes en la cocina!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

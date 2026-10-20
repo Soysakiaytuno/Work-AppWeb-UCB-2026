@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block titulo %}{{ restaurante.nombre }}{% endblock %}
+
+{% block contenido %}
+<div class="restaurante-detail-container">
+    <div class="breadcrumb">
+        <a href="{{ url_for('views.pagina_inicio') }}">← Volver a Restaurantes</a>
+    </div>
+
+    <div class="restaurante-hero">
+        <h2>{{ restaurante.nombre }}</h2>
+        <p class="direccion">📍 {{ restaurante.direccion }} | 📞 {{ restaurante.telefono or 'Sin teléfono' }}</p>
+    </div>
+
+    <div class="menu-section">
+        <h3>Carta del Restaurante</h3>
+
+        {% if platos %}
+            <form action="{{ url_for('views.crear_pedido') }}" method="POST" class="pedido-form">
+                <input type="hidden" name="restaurante_id" value="{{ restaurante.id }}">
+
+                <div class="platos-list">
+                    {% for p in platos %}
+                        <div class="plato-card">
+                            <div class="plato-info">
+                                <h4>{{ p.nombre }}</h4>
+                                {% if p.descripcion %}
+                                    <p class="plato-desc">{{ p.descripcion }}</p>
+                                {% endif %}
+                                <span class="plato-precio">${{ p.precio }}</span>
+                            </div>
+
+                            <div class="plato-actions">
+                                <input type="hidden" name="plato_id" value="{{ p.id }}">
+                                <label for="cant_{{ p.id }}">Cantidad:</label>
+                                <input 
+                                    type="number" 
+                                    id="cant_{{ p.id }}" 
+                                    name="cantidad" 
+                                    value="0" 
+                                    min="0" 
+                                    max="20" 
+                                    class="input-cantidad"
+                                >
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="order-submit-bar">
+                    {% if user and user.has_permission('create:pedidos') %}
+                        <button type="submit" class="btn btn-success btn-large">
+                            🛒 Confirmar y Hacer Pedido
+                        </button>
+                    {% elif user %}
+                        <div class="alert alert-info">
+                            Tu usuario actual (<strong>{{ user.name }}</strong>) no tiene el rol de <em>Cliente</em> para realizar pedidos.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary">
+                                Inicia sesión con Auth0 para hacer un pedido
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </form>
+        {% else %}
+            <p class="empty-state">Este restaurante aún no tiene platos disponibles.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
