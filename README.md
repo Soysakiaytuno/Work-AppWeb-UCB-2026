@@ -160,3 +160,8 @@ docker exec -w /app restaurante_flask pytest -q
 1. **Notificaciones en Tiempo Real:** Actualmente la cocina debe recargar la página para ver pedidos nuevos. Una mejora ideal sería incorporar WebSockets (Flask-SocketIO o SSE) para actualizar la cola en vivo.
 2. **Concurrencia en Cocina:** Si dos cocineros hacen clic en "Avanzar pedido" exactamente al mismo milisegundo, la base de datos podría procesar ambos. Se podría implementar un bloqueo optimista o `SELECT FOR UPDATE` en PostgreSQL para mitigar condiciones de carrera concurrentes.
 3. **Manejo de Stock:** No existe control de inventario de platos por restaurante; se asume disponibilidad binaria (`disponible = True/False`).
+* **Usuarios de Prueba:**
+  * Cliente: `cliente@test.com` / `ClientedelaCarta123!`
+  * Cocina: `cocina@test.com` / `CocinadelaCarta123!`
+  * Admin: `admin@test.com` / `AdmindelaCarta123!`
+  * Superusuario Django: `admin` / `admin123`
