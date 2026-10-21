@@ -128,7 +128,7 @@ docker compose exec nginx nginx -s reload
 ### Paso 7: Ejecutar las Pruebas Automatizadas
 Verifica la suite de 6 pruebas obligatorias:
 ```bash
-docker exec restaurante_flask pytest -q
+docker exec -w /app restaurante_flask pytest -q
 ```
 
 ---
