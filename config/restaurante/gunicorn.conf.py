@@ -3,10 +3,10 @@ import os
 
 bind = "0.0.0.0:5000"
 
-# Fórmula recomendada de trabajadores: (2 x núcleos de CPU) + 1
-workers = int(os.environ.get("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1))
+# En instancias pequeñas de EC2 (1 GB RAM), limitamos a 2 workers para evitar OOM (Out Of Memory)
+workers = int(os.environ.get("GUNICORN_WORKERS", 2))
 worker_class = "sync"
-threads = int(os.environ.get("GUNICORN_THREADS", 1))
+threads = int(os.environ.get("GUNICORN_THREADS", 2))
 
 timeout = int(os.environ.get("GUNICORN_TIMEOUT", 30))
 graceful_timeout = 30
