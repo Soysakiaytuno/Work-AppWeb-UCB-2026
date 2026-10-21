@@ -1,7 +1,0 @@
-FROM postgres:16-alpine
-
-ENV POSTGRES_USER=todo \
-    POSTGRES_PASSWORD=todo \
-    POSTGRES_DB=todoapp
-
-COPY schema.sql /docker-entrypoint-initdb.d/
