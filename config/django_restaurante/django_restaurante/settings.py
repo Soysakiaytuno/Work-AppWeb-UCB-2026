@@ -92,6 +92,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://admin.localhost',
     'http://admin.localhost:80',
     'https://admin.localhost',
+    'http://admin.mijael.mooo.com',
+    'https://admin.mijael.mooo.com',
 ]
 if csrf_origins_env:
     for origin in csrf_origins_env.split(','):

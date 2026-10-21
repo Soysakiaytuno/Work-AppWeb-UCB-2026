@@ -9,10 +9,10 @@ Universidad Católica Boliviana "San Pablo" — Sede Santa Cruz
 
 ## 🌐 1. URLs del Proyecto
 
-* **Web Pública y Portal de Pedidos (Flask):** [https://carta.midominio.xyz](https://carta.midominio.xyz)  
+* **Web Pública y Portal de Pedidos (Flask):** [https://carta.mijael.mooo.com](https://carta.mijael.mooo.com)  
   *(En desarrollo local: `http://carta.localhost` o `http://localhost`)*
-* **Portal de Cocina (Cola de preparación):** [https://carta.midominio.xyz/cocina](https://carta.midominio.xyz/cocina)
-* **Backoffice Administrativo (Django Admin):** [https://admin.midominio.xyz](https://admin.midominio.xyz)  
+* **Portal de Cocina (Cola de preparación):** [https://carta.mijael.mooo.com/cocina](https://carta.mijael.mooo.com/cocina)
+* **Backoffice Administrativo (Django Admin):** [https://admin.mijael.mooo.com](https://admin.mijael.mooo.com)  
   *(En desarrollo local: `http://admin.localhost`)*
 
 ---
